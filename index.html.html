@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control Colaborativo - Línea del Tiempo TIC</title>
+    <style>
+        :root {
+            --bg-admin: #060913;
+            --sidebar-bg: #0d111c;
+            --card-bg: #141b2d;
+            --accent-tech: #00f0ff; /* Cian Neón */
+            --accent-pink: #ff007f; /* Rosa Neón */
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+            --border-color: #222f47;
+            --editable-bg: rgba(0, 240, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-admin);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* PANEL LATERAL (SIDEBAR) */
+        .sidebar {
+            width: 320px;
+            background-color: var(--sidebar-bg);
+            border-right: 2px solid var(--border-color);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+
+        .admin-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 35px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-tech), var(--accent-pink));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+        }
+
+        .brand-text h3 { margin: 0; font-size: 1.1rem; }
+        .brand-text span { font-size: 0.8rem; color: var(--accent-tech); }
+
+        /* Controles de Edición Global */
+        .control-panel {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .btn-admin {
+            background: linear-gradient(90deg, var(--accent-pink), #ff0055);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(255, 0, 127, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn-admin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 127, 0.6);
+        }
+
+        .btn-save {
+            background: linear-gradient(90deg, #00b4d8, var(--accent-tech));
+            box-shadow: 0 4px 15px rgba(0, 240, 255, 0.3);
+            margin-top: 10px;
+            display: none; /* Se muestra al editar */
+        }
+
+        .instruction-box {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 10px;
+            line-height: 1.4;
+        }
+
+        /* CONTENEDOR PRINCIPAL */
+        .main-content {
+            flex-grow: 1;
+            padding: 40px;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+
+        .dashboard-header h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+        }
+
+        .mode-indicator {
+            background-color: rgba(0, 240, 255, 0.1);
+            color: var(--accent-tech);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid rgba(0, 240, 255, 0.3);
+        }
+
+        /* LÍNEA DEL TIEMPO INTERACTIVA */
+        .timeline {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 40px;
+            width: 4px;
+            background: linear-gradient(to bottom, var(--accent-pink), var(--accent-tech));
+            border-radius: 2px;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 50px;
+            padding-left: 80px;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: 28px;
+            top: 10px;
+            width: 24px;
+            height: 24px;
+            background-color: var(--bg-admin);
+            border: 4px solid var(--accent-pink);
+            border-radius: 50%;
+            z-index: 2;
+            box-shadow: 0 0 12px var(--accent-pink);
+        }
+
+        /* Tarjeta de Datos Estilo Sci-Fi */
+        .timeline-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 25px;
+            display: grid;
+            grid-template-columns: 1fr 240px;
+            gap: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 900px) {
+            .timeline-card { grid-template-columns: 1fr; }
+        }
+
+        .timeline-card:hover {
+            border-color: var(--accent-tech);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
+        }
+
+        /* Zona editable visual */
+        [contenteditable="true"] {
+            background-color: var(--editable-bg);
+            border-radius: 6px;
+            padding: 4px 8px;
+            outline: 2px dashed var(--accent-tech);
+            color: #fff !important;
+        }
+
+        .date-tag {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent-pink);
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .info-side h2 {
+            margin: 0 0 15px 0;
+            font-size: 1.5rem;
+            color: #fff;
+        }
+
+        .info-side p {
+            font-size: 0.95rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        /* Caja de notas didácticas */
+        .educational-box {
+            background-color: rgba(255, 0, 127, 0.04);
+            border-left: 4px solid var(--accent-pink);
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.9rem;
+        }
+
+        .educational-box strong { color: var(--accent-tech); display: block; margin-bottom: 4px;}
+
+        /* Área de Imágenes */
+        .image-side {
+            width: 100%;
+            height: 100%;
+            min-height: 160px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .image-side img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- MENÚ DE ADMINISTRACIÓN Y CONTROLES -->
+    <div class="sidebar">
+        <div class="admin-brand">
+            <div class="logo-icon">TIC</div>
+            <div class="brand-text">
+                <h3>Panel de Control</h3>
+                <span>Modo Multi-Editor</span>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <button class="btn-admin" id="editBtn" onclick="toggleEditMode()">Habilitar Edición</button>
+            <button class="btn-admin btn-save" id="saveBtn" onclick="saveData()">Guardar Base de Datos</button>
+            <p class="instruction-box" id="instruction">Presiona el botón de arriba para reescribir cualquier texto educativo de la pantalla de forma directa.</p>
+        </div>
+
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 15px;">
+            <strong>Módulo de Datos:</strong> Activo<br>
+            <strong>Permisos de Invitado:</strong> Concedidos<br>
+            <strong>Filtro de Diseño:</strong> Moderno Inteligente
+        </div>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL DE LA LÍNEA DEL TIEMPO -->
+    <div class="main-content">
+        
+        <div class="dashboard-header">
+            <div>
+                <h1 id="mainTitle">Línea del Tiempo Histórica de las TIC</h1>
+                <p id="mainSub">Investigación abierta y editable dedicada a las Ciencias de la Información.</p>
+            </div>
+            <div class="mode-indicator" id="statusBadge">Visualización Activa</div>
+        </div>
+
+        <div class="timeline" id="timelineContainer">
+
+            <!-- Bloque Educativo 1 -->
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-card">
+                    <div class="info-side">
+                        <span class="date-tag editable">1936 - Origen Algorítmico</span>
+                        <h2 class="editable">La Máquina de Turing</h2>
+                        <p class="editable">Alan Turing diseñó el modelo matemático de una computadora universal. Demostró científicamente que un hardware automatizado guiado por un set de instrucciones lógicas (lo que hoy llamamos software) podía resolver cualquier problema matemático computable.</p>
+                        <div class="educational-box">
+                            <strong class="editable">¿Por qué es fundamental para las TIC?</strong>
+                            <span class="editable">Estableció de forma definitiva que las computadoras no debían construirse para un solo propósito, sino que debían ser programables para cambiar su función.</span>
+                        </div>
+                    </div>
+                    <div class="image-side">
+                        <img src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=500&q=80" alt="Ciencia abstracta">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bloque Educativo 2 -->
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-card">
+                    <div class="info-side">
+                        <span class="date-tag editable">1947 - Física del Silicio</span>
+                        <h2 class="editable">La Invención del Transistor</h2>
+                        <p class="editable">Desarrollado en los Laboratorios Bell, este diminuto semiconductor reemplazó los gigantescos bombillos o válvulas de vacío. Actúa como un interruptor binario ultrarrápido y microscópico para procesar corrientes eléctricas.</p>
+                        <div class="educational-box">
+                            <strong class="editable">¿Por qué es fundamental para las TIC?</strong>
+                            <span class="editable">Permitió la miniaturización radical. Gracias al transistor pasamos de máquinas que abarcaban habitaciones enteras a microchips capaces de caber en la punta de un dedo.</span>
+                        </div>
+                    </div>
+                    <div class="image-side">
+                        <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=500&q=80" alt="Hardware de microchips">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bloque Educativo 3 -->
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-card">
+                    <div class="info-side">
+                        <span class="date-tag editable">1969 - Nodos Conectados</span>
+                        <h2>Nace ARPANET</h2>
+                        <p class="editable">El primer sistema de interconexión informática robusta del mundo. Introdujo la conmutación de paquetes: fragmentar los datos enviados para que viajen por múltiples rutas físicas y se reensamblen en el destino, asegurando la comunicación.</p>
+                        <div class="educational-box">
+                            <strong class="editable">¿Por qué es fundamental para las TIC?</strong>
+                            <span class="editable">Es el cimiento estructural y técnico directo sobre el cual se construyó la red de redes que hoy conocemos como Internet global.</span>
+                        </div>
+                    </div>
+                    <div class="image-side">
+                        <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=500&q=80" alt="Servidores e infraestructura">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bloque Educativo 4 -->
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-card">
+                    <div class="info-side">
+                        <span class="date-tag editable">1989 - Interfaz Humana</span>
+                        <h2 class="editable">Creación de la World Wide Web (WWW)</h2>
+                        <p class="editable">Sir Tim Berners-Lee desarrolló el hipertexto interactivo combinando las URL, el protocolo HTTP y el lenguaje HTML en el CERN de Suiza. Creó el lenguaje visual para que cualquier usuario navegue por la red sin dominar código militar o complejo.</p>
+                        <div class="educational-box">
+                            <strong class="editable">¿Por qué es fundamental para las TIC?</strong>
+                            <span class="editable">Internet ya existía, pero la Web lo transformó en una biblioteca multimedia amigable, abriendo la puerta a la democratización masiva de la información.</span>
+                        </div>
+                    </div>
+                    <div class="image-side">
+                        <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=500&q=80" alt="Líneas de código web">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bloque Educativo 5 -->
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-card">
+                    <div class="info-side">
+                        <span class="date-tag editable">Actualidad - Computación Avanzada</span>
+                        <h2 class="editable">Big Data e Inteligencia Artificial Neuronal</h2>
+                        <p class="editable">Hoy las TIC procesan exabytes de datos por medio de redes neuronales artificiales. Los sistemas ya no solo guardan o transfieren archivos, sino que automatizan razonamientos complejos, diagnostican enfermedades y generan código propio.</p>
+                        <div class="educational-box">
+                            <strong class="editable">¿Por qué es fundamental para las TIC?</strong>
+                            <span class="editable">Representa el salto de los sistemas puramente de almacenamiento hacia herramientas autónomas cognitivas que expanden la inteligencia humana a gran escala.</span>
+                        </div>
+                    </div>
+                    <div class="image-side">
+                        <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=500&q=80" alt="Red neuronal abstracta">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- SCRIPT DE PROGRAMACIÓN PARA CONTROLAR LA EDICIÓN -->
+    <script>
+        let editMode = false;
+
+        function toggleEditMode() {
+            editMode = !editMode;
+            const elements = document.querySelectorAll('.editable');
+            const editBtn = document.getElementById('editBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const statusBadge = document.getElementById('statusBadge');
+            const instruction = document.getElementById('instruction');
+
+            if (editMode) {
+                // Habilitar la edición de todos los textos marcados
+                elements.forEach(el => el.setAttribute('contenteditable', 'true'));
+                editBtn.innerText = "Bloquear Edición";
+                editBtn.style.background = "#4b5563";
+                saveBtn.style.display = "block";
+                statusBadge.innerText = "¡Modo Edición Activado!";
+                statusBadge.style.color = "var(--accent-pink)";
+                statusBadge.style.borderColor = "var(--accent-pink)";
+                instruction.innerHTML = "<strong>¡Listo!</strong> Haz clic sobre cualquier título, fecha o párrafo de la línea de tiempo y cámbialo a tu gusto.";
+            } else {
+                // Deshabilitar edición
+                elements.forEach(el => el.removeAttribute('contenteditable'));
+                editBtn.innerText = "Habilitar Edición";
+                editBtn.style.background = "linear-gradient(90deg, var(--accent-pink), #ff0055)";
+                saveBtn.style.display = "none";
+                statusBadge.innerText = "Visualización Activa";
+                statusBadge.style.color = "var(--accent-tech)";
+                statusBadge.style.borderColor = "rgba(0, 240, 255, 0.3)";
+                instruction.innerText = "Presiona el botón de arriba para reescribir cualquier texto educativo de la pantalla de forma directa.";
+            }
+        }
+
+        function saveData() {
+            // Simulación de guardado de datos en el navegador
+            alert("🔒 ¡Cambios guardados con éxito en la sesión del Panel de Administración! (Nota: Al actualizar la pestaña volverá a los textos por defecto, a menos que guardes el archivo .html editado).");
+            toggleEditMode();
+        }
+    </script>
+</body>
+</html>
